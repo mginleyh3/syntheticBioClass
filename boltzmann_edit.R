@@ -1,3 +1,5 @@
+####Thermodynamic modelling of combinatorial CRISPRa data
+
 library(optimr)
 library(beeswarm)
 library(ggplot2)
@@ -6,7 +8,8 @@ thermoOptimize("cish","VP160")
 thermoOptimize("mmp17","VP160")
 thermoOptimize("fhl2","VP160")
 
-data <- read.csv(paste("~/Documents/Research/CRISPRa_plotting/VP160cishDataforModel.csv",sep = ""))
+###Read in data and set up matrix describing experiment conditions
+data <- read.csv(paste("~VP160cishDataforModel.csv",sep = ""))
 data <- data[complete.cases(data),]
 param = c(k1=-.1,k2=-.1,k3=-.1,w12=-.1,w13=-.1,w23=-.1,wRNAP=-.1,w1r=-.1,w2r=-.1,w3r=-.1)
 exper = data.frame(C1=c(0,1,1,0,0,1,1,0), C2=c(0,1,0,1,0,1,0,1),C3=c(0,1,0,0,1,0,1,1))
@@ -21,6 +24,8 @@ exper$R3 = exper$RNAP*exper$C3
 
 p_rnap = c()
 
+#Calculate the probability of RNAP being bound for all experiments
+##Returns correlation of probability with experimental data
 to_optim <- function(params){
   p1 <- c(1)
   p2 <- c(1:8)
@@ -49,11 +54,14 @@ to_optim <- function(params){
     }
 }
 
+##Calculates boltzmann weight for a given set of parameters
 thermo <- function(params){
   weight_vec <- exp(-rowSums(t(params*t(exper)))/.5961)
   return(weight_vec)
 }
 
+
+##Following code runs optimization and saves files
 control <- list(trace=1)
 thermoOptimize <- function(gene,construct){
   data <- read.csv(paste("~/Documents/Research/CRISPRa_plotting/",construct,gene,"DataforModelRepression.csv",sep = ""))
